@@ -25,9 +25,9 @@ public class GraphGenerator {
         return fr;
     }
 
-    public SimpleGraph<Integer, DefaultEdge> GenerateGraphWithXVertexes(int numOfVertexes){
+    public SimpleGraph<Integer, DefaultEdge> GenerateGraphWithXVertexes(int firstVertexNumber, int lastVertexNumber){
         SimpleGraph<Integer, DefaultEdge> graph = new SimpleGraph<>(DefaultEdge.class);
-        for (var i=1; i<=numOfVertexes; i++){
+        for (var i=firstVertexNumber; i<=lastVertexNumber; i++){
             graph.addVertex(i);
         }
         return graph;

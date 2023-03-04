@@ -14,7 +14,7 @@ public class DiplomovaPraca {
 
 //        var graph = GraphGenerator.getInstance().GenerateGraphWithXVertexes(7);
 
-        var anonymization = new Anonymization();
+        var anonymization = new Anonymization(2);
         anonymization.AnonymizeGreedy();
 
     }

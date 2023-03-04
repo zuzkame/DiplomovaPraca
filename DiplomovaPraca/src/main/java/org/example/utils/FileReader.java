@@ -1,5 +1,6 @@
 package org.example.utils;
 import java.io.FileNotFoundException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Scanner;
@@ -7,20 +8,21 @@ import java.io.File;
 import java.util.List;
 
 public class FileReader {
-    private String PathToCsvFile;
+    private URI PathToCsvFile;
     private List<List<Integer>> Edges;
     private int MaxNumber;
+    private int MinNumber;
 
     public FileReader(){}
-    public FileReader(String pathToCsvFile){
+    public FileReader(URI pathToCsvFile){
         setPathToCsvFile(pathToCsvFile);
     }
 
-    public String getPathToCsvFile() {
+    public URI getPathToCsvFile() {
         return PathToCsvFile;
     }
 
-    public void setPathToCsvFile(String pathToCsvFile) {
+    public void  setPathToCsvFile(URI pathToCsvFile) {
         PathToCsvFile = pathToCsvFile;
     }
 
@@ -35,9 +37,16 @@ public class FileReader {
     public int getMaxNumber() {
         return MaxNumber;
     }
+    public int getMinNumber() {
+        return MinNumber;
+    }
 
     private void setMaxNumber(int maxNumber) {
         MaxNumber = maxNumber;
+    }
+
+    private void setMinNumber(int minNumber) {
+        MinNumber = minNumber;
     }
 
     /**
@@ -50,15 +59,19 @@ public class FileReader {
             Scanner sc = new Scanner(new File(PathToCsvFile));
             sc.useDelimiter(",");
             int max = 0;
+            int min = 1;
             while(sc.hasNextLine()){
                 List<Integer> tuple = new ArrayList<>();
                 for(String v : sc.nextLine().split(",")){
                     tuple.add(Integer.parseInt(v));
                 }
+                if(tuple.contains(0))   min = 0;
                 listOfEdges.add(tuple);
                 max = Math.max(max, Collections.max(tuple));
             }
+
             setMaxNumber(max);
+            setMinNumber(min);
         } catch (FileNotFoundException e){
             e.printStackTrace();
         }
