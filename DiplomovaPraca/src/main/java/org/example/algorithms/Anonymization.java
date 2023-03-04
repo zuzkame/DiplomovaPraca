@@ -1,4 +1,4 @@
-package org.example.Algorithms;
+package org.example.algorithms;
 
 import org.example.data.GraphGenerator;
 import org.jgrapht.graph.DefaultEdge;

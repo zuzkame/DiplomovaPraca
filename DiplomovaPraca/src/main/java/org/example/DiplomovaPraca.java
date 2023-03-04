@@ -4,12 +4,7 @@
 
 package org.example;
 
-import org.example.Algorithms.Anonymization;
-import org.example.data.GraphGenerator;
-import org.example.utils.FileReader;
-
-import java.util.Collections;
-import java.util.stream.Collectors;
+import org.example.algorithms.Anonymization;
 
 public class DiplomovaPraca {
 
