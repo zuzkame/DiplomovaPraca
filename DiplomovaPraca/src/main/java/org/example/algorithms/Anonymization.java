@@ -7,7 +7,6 @@ import org.jgrapht.graph.SimpleGraph;
 
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Anonymization {
@@ -17,6 +16,7 @@ public class Anonymization {
     private List<Integer> _degreesResult;
 
     private Graph<Integer, DefaultEdge> _anonymizedGraphResult;
+    private Graph<Integer, DefaultEdge> _originalGraph;
     private static GraphGenerator graphGenerator = GraphGenerator.getInstance();
 
     private Anonymization(){}
@@ -37,6 +37,10 @@ public class Anonymization {
         return _anonymizedGraphResult;
     }
 
+    public Graph<Integer, DefaultEdge> get_originalGraph() {
+        return _originalGraph;
+    }
+
     public void AnonymizeGreedy(){
         if(k <= 1) return;
         try{
@@ -48,7 +52,7 @@ public class Anonymization {
             System.out.println(_degreesResult.stream().mapToInt(i -> i).sum()/2);
 
             _anonymizedGraphResult = GraphReconstruction();
-            System.out.println(_anonymizedGraphResult.edgeSet().size());
+            System.out.println(_anonymizedGraphResult.edgeSet());
 
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
@@ -67,6 +71,7 @@ public class Anonymization {
         SimpleGraph<Integer, DefaultEdge> graph = graphGenerator.GenerateGraphWithXVertexes(fr.getMinNumber(), fr.getMaxNumber());
         graph = graphGenerator.AddEdgesFromList(graph, listOfEdgeTuples);
 
+        _originalGraph = graph;
         setDegreeList(graph);
         setSortedDegreeList();
     }
