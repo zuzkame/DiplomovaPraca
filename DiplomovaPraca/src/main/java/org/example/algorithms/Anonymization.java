@@ -52,6 +52,10 @@ public class Anonymization {
             System.out.println(_degreesResult.stream().mapToInt(i -> i).sum()/2);
 
             _anonymizedGraphResult = GraphReconstruction();
+            if (_anonymizedGraphResult == null) {
+                System.out.println("Graf sa neda zostrojit");
+                return;
+            }
             System.out.println(_anonymizedGraphResult.edgeSet());
 
         } catch (URISyntaxException e) {
