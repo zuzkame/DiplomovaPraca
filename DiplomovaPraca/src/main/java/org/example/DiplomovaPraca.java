@@ -8,13 +8,6 @@ import org.example.algorithms.Anonymization;
 import org.example.algorithms.Deanonymization;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.DefaultWeightedEdge;
-import org.jgrapht.graph.SimpleDirectedWeightedGraph;
-import org.jgrapht.alg.matching.MaximumWeightBipartiteMatching;
-import org.jgrapht.alg.flow.EdmondsKarpMFImpl;
-import org.jgrapht.graph.SimpleWeightedGraph;
-
-import java.util.Arrays;
 
 public class DiplomovaPraca {
 
@@ -24,11 +17,15 @@ public class DiplomovaPraca {
         Graph<Integer, DefaultEdge> anonymizedGraphResult = anonymization.get_anonymizedGraphResult();
 
         if(anonymizedGraphResult == null) return;
+        System.out.println(anonymizedGraphResult);
         var deanonymization = new Deanonymization(anonymizedGraphResult, anonymization.get_originalGraph(), 0.001);
         deanonymization.Deanonymize();
 //        System.out.println(deanonymization.get_correspondenceMatrix());
         for(var r: deanonymization.get_correspondenceMatrix()){
-            System.out.println(Arrays.stream(r).max());
+            for(var c : r){
+                System.out.println(c);
+            }
+            System.out.println("\n");
         }
 
     }
