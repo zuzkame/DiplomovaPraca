@@ -24,11 +24,14 @@ public class Anonymization {
     private Graph<Integer, DefaultEdge> _originalGraph;
 
     private Map<Integer, Integer> correspondenceVertexesKToA;
-    private static GraphGenerator graphGenerator = GraphGenerator.getInstance();
+    private static GraphGenerator graphGenerator = GraphGenerator.getInstance(1000);
+
+    private String _filename;
 
     private Anonymization(){}
 
-    public Anonymization(int k){
+    public Anonymization(int k, String filename){
+        set_filename(filename);
         setK(k);
     }
 
@@ -40,12 +43,20 @@ public class Anonymization {
         this.k = k;
     }
 
+    private void set_filename(String _filename) {
+        this._filename = _filename;
+    }
+
     public Graph<Integer, DefaultEdge> get_anonymizedGraphResult() {
         return _anonymizedGraphResult;
     }
 
     public Graph<Integer, DefaultEdge> get_originalGraph() {
         return _originalGraph;
+    }
+
+    public Map<Integer, Integer> getCorrespondenceVertexesKToA() {
+        return correspondenceVertexesKToA;
     }
 
     public void AnonymizeGreedy(){
@@ -60,15 +71,15 @@ public class Anonymization {
             }
 
             _degreesResult = GreedyAlgorithm(new ArrayList<>(degreesSortedValues));
-            System.out.println(_degreesResult.size());
+//            System.out.println(_degreesResult.size());
 //            System.out.println(_degrees.stream().mapToInt(i -> i).sum()/2);
-            System.out.println(_degreesResult.stream().mapToInt(i -> i).sum()/2);
+            System.out.println("pocet hran po anonymizacii: " + _degreesResult.stream().mapToInt(i -> i).sum()/2);
 
             _degreesResultMap = new LinkedHashMap<>();
             for(var i = 0; i < _degreesResult.size(); i++){
                 _degreesResultMap.put(degreesSortedKeys.get(i), _degreesResult.get(i));
             }
-            System.out.println("anonymizovana mapa" + _degreesResultMap);
+            System.out.println("anonymizovane d (vrchol=degree): " + _degreesResultMap);
             _anonymizedGraphResult = GraphReconstruction(degreesSortedKeys);
             if (_anonymizedGraphResult == null) {
                 System.out.println("Graf sa neda zostrojit");
@@ -87,7 +98,7 @@ public class Anonymization {
 
     private void GraphInitialization() throws URISyntaxException {
         var fr = graphGenerator.getFr();
-        fr.setPathToCsvFile(ClassLoader.getSystemResource("musae_git_edges-test.csv").toURI());
+        fr.setPathToCsvFile(ClassLoader.getSystemResource(_filename).toURI());
         var listOfEdgeTuples = fr.getEdgesListFromCsv();
 
         SimpleGraph<Integer, DefaultEdge> graph = graphGenerator.GenerateGraphWithXVertexes(fr.getMinNumber(), fr.getMaxNumber());
@@ -128,8 +139,8 @@ public class Anonymization {
                 }
             }
         }
-        System.out.println(_degrees);
-        System.out.println(_degreesSorted);
+        System.out.println("povodne d (vrchol=degree): " + _degrees);
+        System.out.println("povodne d ZORADENE (vrchol=degree): " + _degreesSorted);
     }
 
     private int degAnonCostI(List<Integer> sublist){
@@ -155,7 +166,7 @@ public class Anonymization {
                 sortedCopy.remove(0);
             }
         } catch(IndexOutOfBoundsException ex){
-            System.out.println("kedy to skoncilo: " + sortedCopy.size());
+//            System.out.println("kedy to skoncilo: " + sortedCopy.size());
             return Collections.nCopies(sortedCopy.size(), sortedCopy.get(0));
         }
 
@@ -188,7 +199,7 @@ public class Anonymization {
         for (var v = 0; v < originalSortedVertexes.size(); v++){
             correspondenceVertexesKToA.put(originalSortedVertexes.get(v), anonymizedVertexes.get(v));
         }
-        System.out.println("knowledge vrcholy na anonymizovane vrcholy: " + correspondenceVertexesKToA);
+        System.out.println("knowledge vrcholy -> anonymizovane vrcholy: " + correspondenceVertexesKToA);
 
         List<Integer> degreesResultCopy = new ArrayList<>(_degreesResult);
         while(true){

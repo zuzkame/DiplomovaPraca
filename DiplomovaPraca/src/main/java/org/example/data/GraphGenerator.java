@@ -13,17 +13,18 @@ import java.util.stream.IntStream;
 
 public class GraphGenerator {
 
-    final static int MAX_VERTEXES = 1000;
+    private static int MAX_VERTEXES;
     private static GraphGenerator generator = null;
     private static Map<Integer, Integer> VertexMap;
     private final FileReader fr = new FileReader();
 
-    public GraphGenerator(){
+    public GraphGenerator(int maxVal){
     }
 
-    public static GraphGenerator getInstance(){
+    public static GraphGenerator getInstance(int maxVal){
+        MAX_VERTEXES = maxVal;
         if(generator == null){
-            generator = new GraphGenerator();
+            generator = new GraphGenerator(maxVal);
         }
         return generator;
     }

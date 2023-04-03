@@ -17,6 +17,7 @@ public class Deanonymization {
     private double[][] _correspondenceMatrix;
 
     private Double _threshold;
+    private int numOfIterations = 0;
 
     public Deanonymization() {
     }
@@ -30,6 +31,10 @@ public class Deanonymization {
 
     public double[][] get_correspondenceMatrix() {
         return _correspondenceMatrix;
+    }
+
+    public int get_numberOfVertexes() {
+        return _numberOfVertexes;
     }
 
     public void Deanonymize(){
@@ -53,6 +58,7 @@ public class Deanonymization {
     private void MapVertexes(){
         double difference;
         do {
+            numOfIterations++;
             difference = 0.0;
 
             //count new values of matrix
