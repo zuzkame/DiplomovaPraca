@@ -26,19 +26,24 @@ public class DiplomovaPraca {
 //        System.out.println(deanonymization.get_correspondenceMatrix());
         var count = 0.0;
         var mapping = anonymization.getCorrespondenceVertexesKToA();
-        for(var r=0; r < deanonymization.get_correspondenceMatrix().length; r++){
+        for(var r=0; r < deanonymization.get_numberOfVertexes(); r++){
             var maxvalue = Arrays.stream(deanonymization.get_correspondenceMatrix()[r]).max().getAsDouble();
             if (maxvalue == deanonymization.get_correspondenceMatrix()[r][mapping.get(r+1)-1]){
                 count++;
+                var freq = 0;
+                for(var c : deanonymization.get_correspondenceMatrix()[r]){
+                    if(c == maxvalue)   freq++;
+                }
+                System.out.println("pocetnost maxvalue je: " + freq + " = " + 1.0/freq*100 + "%");
             }
-            System.out.println(Arrays.stream(deanonymization.get_correspondenceMatrix()[r]).max());
+            System.out.println("maxValue: " + Arrays.stream(deanonymization.get_correspondenceMatrix()[r]).max());
             for(var c : deanonymization.get_correspondenceMatrix()[r]){
                 System.out.println(c);
             }
             System.out.println("\n");
         }
-        System.out.println(count/deanonymization.get_correspondenceMatrix().length);
-        System.out.println("pocet iteracii: " + deanonymization.get_numberOfVertexes());
+        System.out.println("uspesnost: " + count/deanonymization.get_numberOfVertexes());
+        System.out.println("pocet iteracii: " + deanonymization.getNumOfIterations());
     }
     public static void main(String[] args){
         var dp = new DiplomovaPraca();

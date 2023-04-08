@@ -37,6 +37,10 @@ public class Deanonymization {
         return _numberOfVertexes;
     }
 
+    public int getNumOfIterations() {
+        return numOfIterations;
+    }
+
     public void Deanonymize(){
         InitializeCorrespondenceMatrix();
 

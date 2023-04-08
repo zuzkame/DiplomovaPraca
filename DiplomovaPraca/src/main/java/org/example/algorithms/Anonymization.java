@@ -70,10 +70,12 @@ public class Anonymization {
                 degreesSortedKeys.add(entry.getKey());
             }
 
+            System.out.println("pocetnost stupnov:" + degreesSortedValues.stream().collect(Collectors.groupingBy(e -> e.toString(),Collectors.counting())));
             _degreesResult = GreedyAlgorithm(new ArrayList<>(degreesSortedValues));
 //            System.out.println(_degreesResult.size());
 //            System.out.println(_degrees.stream().mapToInt(i -> i).sum()/2);
             System.out.println("pocet hran po anonymizacii: " + _degreesResult.stream().mapToInt(i -> i).sum()/2);
+            System.out.println("pocetnost stupnov po anonymizacii:" + _degreesResult.stream().collect(Collectors.groupingBy(e -> e.toString(),Collectors.counting())));
 
             _degreesResultMap = new LinkedHashMap<>();
             for(var i = 0; i < _degreesResult.size(); i++){
