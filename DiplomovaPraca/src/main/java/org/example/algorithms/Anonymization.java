@@ -13,8 +13,8 @@ import java.util.stream.Stream;
 
 public class Anonymization {
     private int k;
-//    private List<Integer> _degrees;
-    private Map<Integer, Integer> _degrees;
+    private List<Integer> _degrees;
+    private Map<Integer, Integer> _degreesMap;
 //    private List<Integer> _degreesSorted;
     private Map<Integer, Integer> _degreesSorted;
     private List<Integer> _degreesResult;
@@ -24,7 +24,7 @@ public class Anonymization {
     private Graph<Integer, DefaultEdge> _originalGraph;
 
     private Map<Integer, Integer> correspondenceVertexesKToA;
-    private static GraphGenerator graphGenerator = GraphGenerator.getInstance(1000);
+    private static GraphGenerator graphGenerator = GraphGenerator.getInstance(500);
 
     private String _filename;
 
@@ -55,14 +55,22 @@ public class Anonymization {
         return _originalGraph;
     }
 
+    public List<Integer> get_originaldegrees() {
+        return _degrees;
+    }
+
     public Map<Integer, Integer> getCorrespondenceVertexesKToA() {
         return correspondenceVertexesKToA;
     }
 
     public void AnonymizeGreedy(){
+        AnonymizeGreedy(null);
+    }
+
+    public void AnonymizeGreedy(SimpleGraph<Integer, DefaultEdge> g){
         if(k <= 1) return;
         try{
-            GraphInitialization();
+            GraphInitialization(g);
             var degreesSortedValues = new ArrayList<Integer>();
             var degreesSortedKeys = new ArrayList<Integer>();
             for (var entry: _degreesSorted.entrySet()){
@@ -70,18 +78,25 @@ public class Anonymization {
                 degreesSortedKeys.add(entry.getKey());
             }
 
-            System.out.println("pocetnost stupnov:" + degreesSortedValues.stream().collect(Collectors.groupingBy(e -> e.toString(),Collectors.counting())));
+
+
+//            System.out.println("pocetnost stupnov:" + degreesSortedValues.stream().collect(Collectors.groupingBy(e -> e.toString(),Collectors.counting())));
             _degreesResult = GreedyAlgorithm(new ArrayList<>(degreesSortedValues));
 //            System.out.println(_degreesResult.size());
 //            System.out.println(_degrees.stream().mapToInt(i -> i).sum()/2);
-            System.out.println("pocet hran po anonymizacii: " + _degreesResult.stream().mapToInt(i -> i).sum()/2);
-            System.out.println("pocetnost stupnov po anonymizacii:" + _degreesResult.stream().collect(Collectors.groupingBy(e -> e.toString(),Collectors.counting())));
+//            System.out.println("pocet hran po anonymizacii: " + _degreesResult.stream().mapToInt(i -> i).sum()/2);
+//            System.out.println("pocetnost stupnov po anonymizacii:" + _degreesResult.stream().collect(Collectors.groupingBy(e -> e.toString(),Collectors.counting())));
 
             _degreesResultMap = new LinkedHashMap<>();
             for(var i = 0; i < _degreesResult.size(); i++){
                 _degreesResultMap.put(degreesSortedKeys.get(i), _degreesResult.get(i));
             }
-            System.out.println("anonymizovane d (vrchol=degree): " + _degreesResultMap);
+//            System.out.println("anonymizovane d (vrchol=degree): " + _degreesResultMap);
+            System.out.println("ANONYMIZOVANY GRAF");
+            System.out.println("max stupen: " + _degreesResult.get(0));
+            System.out.println("min stupen: " + _degreesResult.get(_degreesResult.size()-1));
+            System.out.println("median: " + (_degreesResult.size()%2==0 ? ( _degreesResult.get(_degreesResult.size()/2 -1) + _degreesResult.get(_degreesResult.size()/2)) / 2 : _degreesResult.get((_degreesResult.size()+1) / 2 - 1)));
+            System.out.println("priemer: " + _degreesResult.stream().mapToInt(i -> i).sum()/_degreesResult.size());
             _anonymizedGraphResult = GraphReconstruction(degreesSortedKeys);
             if (_anonymizedGraphResult == null) {
                 System.out.println("Graf sa neda zostrojit");
@@ -97,14 +112,23 @@ public class Anonymization {
     public void AnonymizeDynamicProg(){
 
     }
+    private void GraphInitialization() throws URISyntaxException{
+        GraphInitialization(null);
+    }
 
-    private void GraphInitialization() throws URISyntaxException {
-        var fr = graphGenerator.getFr();
-        fr.setPathToCsvFile(ClassLoader.getSystemResource(_filename).toURI());
-        var listOfEdgeTuples = fr.getEdgesListFromCsv();
+    private void GraphInitialization(SimpleGraph<Integer, DefaultEdge> g) throws URISyntaxException {
+        SimpleGraph<Integer, DefaultEdge> graph;
+        if(g == null){
+            var fr = graphGenerator.getFr();
+            fr.setPathToCsvFile(ClassLoader.getSystemResource(_filename).toURI());
+            var listOfEdgeTuples = fr.getEdgesListFromCsv();
 
-        SimpleGraph<Integer, DefaultEdge> graph = graphGenerator.GenerateGraphWithXVertexes(fr.getMinNumber(), fr.getMaxNumber());
-        graph = graphGenerator.AddEdgesFromList(graph, listOfEdgeTuples);
+            graph = graphGenerator.GenerateGraphWithXVertexes(fr.getMinNumber(), fr.getMaxNumber());
+            graph = graphGenerator.AddEdgesFromList(graph, listOfEdgeTuples);
+        }
+        else{
+            graph = g;
+        }
 
         _originalGraph = graph;
         setDegreeList(graph);
@@ -118,15 +142,17 @@ public class Anonymization {
 //            _degrees.add(graph.degreeOf(i));
 //        }
 
-        _degrees = new HashMap<>();
+        _degrees = new ArrayList<>();
+        _degreesMap = new HashMap<>();
         for (var i : graph.vertexSet()){
-            _degrees.put(i, graph.degreeOf(i));
+            _degreesMap.put(i, graph.degreeOf(i));
+            _degrees.add(graph.degreeOf(i));
         }
     }
 
     private void setSortedDegreeList(){
         _degreesSorted = new LinkedHashMap<>();
-        var temp = new HashMap<>(_degrees);
+        var temp = new HashMap<>(_degreesMap);
 
         ArrayList<Integer> list = new ArrayList<>();
         for (var entry : temp.entrySet()) {
@@ -134,6 +160,12 @@ public class Anonymization {
         }
         Collections.sort(list);
         Collections.reverse(list);
+
+        System.out.println("POVODNY GRAF");
+        System.out.println("max stupen: " + list.get(0));
+        System.out.println("min stupen: " + list.get(list.size()-1));
+        System.out.println("median: " + (list.size()%2==0 ? ( list.get(list.size()/2 -1) + list.get(list.size()/2)) / 2 : list.get((list.size()+1) / 2 - 1)));
+        System.out.println("priemer: " + list.stream().mapToInt(i -> i).sum()/list.size());
         for (int num : list) {
             for (var entry : temp.entrySet()) {
                 if (entry.getValue().equals(num)) {
@@ -141,8 +173,8 @@ public class Anonymization {
                 }
             }
         }
-        System.out.println("povodne d (vrchol=degree): " + _degrees);
-        System.out.println("povodne d ZORADENE (vrchol=degree): " + _degreesSorted);
+//        System.out.println("povodne d (vrchol=degree): " + _degreesMap);
+//        System.out.println("povodne d ZORADENE (vrchol=degree): " + _degreesSorted);
     }
 
     private int degAnonCostI(List<Integer> sublist){
@@ -158,16 +190,28 @@ public class Anonymization {
 
         var firstKElements = new ArrayList<>(Collections.nCopies(k, sortedCopy.get(0)));
 
+        int mergeElementIndex = k;
         try{
-            int CMerge = countMerge(sortedCopy);
-            int CNew = countNew(sortedCopy);
-
-            sortedCopy = sortedCopy.subList(k, sortedCopy.size());
-            if(CNew >= CMerge){
-                firstKElements.add(sortedCopy.get(0));
-                sortedCopy.remove(0);
+            int CMerge = countMerge(sortedCopy, mergeElementIndex);
+            int CNew = countNew(sortedCopy, mergeElementIndex);
+            while(CMerge <= CNew) {
+                firstKElements.add(firstKElements.get(0));
+                mergeElementIndex++;
+                CMerge = countMerge(sortedCopy, mergeElementIndex);
+                CNew = countNew(sortedCopy, mergeElementIndex);
             }
-        } catch(IndexOutOfBoundsException ex){
+            sortedCopy = sortedCopy.subList(mergeElementIndex, sortedCopy.size());
+//            int CMerge = countMerge(sortedCopy);
+//            int CNew = countNew(sortedCopy);
+//
+//            sortedCopy = sortedCopy.subList(k, sortedCopy.size());
+//            if(CNew >= CMerge){
+//                firstKElements.add(sortedCopy.get(0));
+//                sortedCopy.remove(0);
+//            }
+        } catch(IllegalArgumentException ex){ //uz nevieme overovat merge/new
+            sortedCopy = sortedCopy.subList(mergeElementIndex, sortedCopy.size());
+        } catch(IndexOutOfBoundsException ex){ //sme na konci rekurzie
 //            System.out.println("kedy to skoncilo: " + sortedCopy.size());
             return Collections.nCopies(sortedCopy.size(), sortedCopy.get(0));
         }
@@ -175,12 +219,12 @@ public class Anonymization {
         return Stream.concat(firstKElements.stream(), GreedyAlgorithm(sortedCopy).stream()).toList();
     }
 
-    private int countMerge(List<Integer> list) throws IndexOutOfBoundsException{
-        return list.get(0) - list.get(k) + degAnonCostI(list.subList(k+1, 2*k+1));
+    private int countMerge(List<Integer> list, int mergeElementIndex) throws IndexOutOfBoundsException, IllegalArgumentException{
+        return list.get(0) - list.get(mergeElementIndex) + degAnonCostI(list.subList(mergeElementIndex+1, 2*k+1));
     }
 
-    private int countNew(List<Integer> list) throws IndexOutOfBoundsException{
-        return degAnonCostI(list.subList(k, 2*k));
+    private int countNew(List<Integer> list, int mergeElementIndex) throws IndexOutOfBoundsException, IllegalArgumentException{
+        return degAnonCostI(list.subList(mergeElementIndex, 2*k));
     }
 
     private SimpleGraph<Integer, DefaultEdge> GraphReconstruction(List<Integer> originalSortedVertexes){
