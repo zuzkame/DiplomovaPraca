@@ -2,6 +2,7 @@ package org.example.algorithms;
 
 import org.example.data.GraphGenerator;
 import org.jgrapht.Graph;
+import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
 
@@ -97,7 +98,8 @@ public class Anonymization {
             System.out.println("min stupen: " + _degreesResult.get(_degreesResult.size()-1));
             System.out.println("median: " + (_degreesResult.size()%2==0 ? ( _degreesResult.get(_degreesResult.size()/2 -1) + _degreesResult.get(_degreesResult.size()/2)) / 2 : _degreesResult.get((_degreesResult.size()+1) / 2 - 1)));
             System.out.println("priemer: " + _degreesResult.stream().mapToInt(i -> i).sum()/_degreesResult.size());
-            _anonymizedGraphResult = GraphReconstruction(degreesSortedKeys);
+//            _anonymizedGraphResult = GraphReconstruction(degreesSortedKeys);
+            _anonymizedGraphResult =CopyPasteGraphReconstruction(degreesSortedKeys);
             if (_anonymizedGraphResult == null) {
                 System.out.println("Graf sa neda zostrojit");
                 return;
@@ -109,9 +111,6 @@ public class Anonymization {
         }
     }
 
-    public void AnonymizeDynamicProg(){
-
-    }
     private void GraphInitialization() throws URISyntaxException{
         GraphInitialization(null);
     }
@@ -201,14 +200,6 @@ public class Anonymization {
                 CNew = countNew(sortedCopy, mergeElementIndex);
             }
             sortedCopy = sortedCopy.subList(mergeElementIndex, sortedCopy.size());
-//            int CMerge = countMerge(sortedCopy);
-//            int CNew = countNew(sortedCopy);
-//
-//            sortedCopy = sortedCopy.subList(k, sortedCopy.size());
-//            if(CNew >= CMerge){
-//                firstKElements.add(sortedCopy.get(0));
-//                sortedCopy.remove(0);
-//            }
         } catch(IllegalArgumentException ex){ //uz nevieme overovat merge/new
             sortedCopy = sortedCopy.subList(mergeElementIndex, sortedCopy.size());
         } catch(IndexOutOfBoundsException ex){ //sme na konci rekurzie
@@ -250,6 +241,7 @@ public class Anonymization {
         List<Integer> degreesResultCopy = new ArrayList<>(_degreesResult);
         while(true){
             if(degreesResultCopy.stream().filter(x -> x < 0).toList().size() > 0){
+                System.out.println("nevyslo to");
                 return null;
             }
             if(degreesResultCopy.stream().filter(x -> x == 0).toList().size() == degreesResultCopy.size()){
@@ -266,7 +258,7 @@ public class Anonymization {
             var chosenVertex = anonymizedVertexes.get(randomVertexDegIndex);
             degreesResultCopy.set(randomVertexDegIndex, 0);
 
-            List<Integer> vertexesIndexesWithHighestDegree = GetVertexesWithHighestDegree(degreesResultCopy, anonymizedVertexes, chosenVertex, randomVertexDeg);
+            List<Integer> vertexesIndexesWithHighestDegree = GetVertexesWithHighestDegree(degreesResultCopy,anonymizedVertexes, anonymizedGraph, chosenVertex, randomVertexDeg);
 
             for (var v :
                     vertexesIndexesWithHighestDegree) {
@@ -278,18 +270,131 @@ public class Anonymization {
 
     private SimpleGraph<Integer, DefaultEdge> CopyPasteGraphReconstruction(List<Integer> originalSortedVertexes){
         if(_degreesResult.isEmpty()){
+            System.out.println("empty result");
+
             return null;
         }
         if(_degreesResult.stream().mapToInt(i -> i).sum() % 2 != 0){
+            System.out.println("not even");
+
             return null;
         }
         // new empty anonymized graph
         SimpleGraph<Integer, DefaultEdge> anonymizedGraph = graphGenerator.GenerateGraphWithXVertexes(1, _degreesResult.size());
+        List<Integer> anonymizedVertexes = new ArrayList<>(IntStream.range(1, _degreesResult.size()+1).boxed().toList());
+        Collections.shuffle(anonymizedVertexes);
+        var degreesSortedList = _degreesSorted.values().stream().toList();
+        var degreeDifferenceMap = new LinkedHashMap<Integer, Integer>();
+        var degreeDifferenceSorted = new LinkedHashMap<Integer, Integer>();
 
-        return anonymizedGraph;
+        correspondenceVertexesKToA = new LinkedHashMap<>();
+        for (var i = 0; i < originalSortedVertexes.size(); i++){
+            correspondenceVertexesKToA.put(originalSortedVertexes.get(i), anonymizedVertexes.get(i));
+            var dif = _degreesResult.get(i) - degreesSortedList.get(i);
+            degreeDifferenceMap.put(anonymizedVertexes.get(i), dif);
+        }
+        System.out.println("degreeDifferenceMap: " + degreeDifferenceMap);
+
+
+        List<Integer> values = new ArrayList<>(degreeDifferenceMap.values().stream().toList());
+        Collections.sort(values);
+        Collections.reverse(values);
+
+        for(var num : values){
+            for (var entry : degreeDifferenceMap.entrySet()) {
+                if (!degreeDifferenceSorted.containsKey(entry.getKey()) && entry.getValue().equals(num)) {
+                    degreeDifferenceSorted.put(entry.getKey(), num);
+                }
+            }
+        }
+
+        if(!CanConstructGraph(degreeDifferenceSorted)){
+            System.out.println("nevysla ta divna podmienka");
+            return null;
+        }
+
+        //create copy of original graph with corresponding vertexes
+        for(var entry : _originalGraph.edgeSet()){
+            anonymizedGraph.addEdge(correspondenceVertexesKToA.get(_originalGraph.getEdgeSource(entry)),
+                    correspondenceVertexesKToA.get(_originalGraph.getEdgeTarget(entry)));
+        }
+
+        var degreeDifference = new ArrayList<>(degreeDifferenceMap.values().stream().toList());
+        while(true){
+            if(degreeDifference.stream().filter(x -> x < 0).toList().size() > 0){
+                System.out.println("nevyslo to tu");
+                return null;
+            }
+            if(degreeDifference.stream().filter(x -> x == 0).toList().size() == degreeDifference.size()){
+                return anonymizedGraph;
+            }
+
+            int randomVertexDegIndex;
+            int randomVertexDeg;
+            do{
+                randomVertexDegIndex = new Random().nextInt(degreeDifference.size());
+            } while (degreeDifference.get(randomVertexDegIndex) == 0);
+            randomVertexDeg = degreeDifference.get(randomVertexDegIndex);
+//            var chosenVertex = randomVertexDegIndex+1;
+            var chosenVertex = anonymizedVertexes.get(randomVertexDegIndex);
+            degreeDifference.set(randomVertexDegIndex, 0);
+
+            List<Integer> vertexesIndexesWithHighestDegree = GetVertexesWithHighestDegree(degreeDifference,anonymizedVertexes, anonymizedGraph, chosenVertex, randomVertexDeg);
+
+            for (var v :
+                    vertexesIndexesWithHighestDegree) {
+                anonymizedGraph.addEdge(anonymizedVertexes.get(v), chosenVertex);
+                degreeDifference.set(v, degreeDifference.get(v)-1);
+            }
+        }
+
+//        return anonymizedGraph;
     }
 
-    private List<Integer> GetVertexesWithHighestDegree(List<Integer> degrees, List<Integer> anonymizedVertexes, Integer chosenVertex, int chosenVertexDegree){
+    private boolean CanConstructGraph(LinkedHashMap<Integer, Integer> degreesDifference){
+        var numOfVertexes = degreesDifference.size();
+        var allVertexes = degreesDifference.keySet().stream().toList();
+        var swappedCorrespondenceVertexes_AtoK = new LinkedHashMap<Integer, Integer>();
+        for(var entry: correspondenceVertexesKToA.entrySet()){
+            swappedCorrespondenceVertexes_AtoK.put(entry.getValue(), entry.getKey());
+        }
+        for(var i=0; i<numOfVertexes-1; i++){
+            List<Integer> vertexesL = new ArrayList<>(allVertexes.subList(0, i+1));
+            var l = vertexesL.size();
+            List<Integer> vertexesComplement = new ArrayList<>(allVertexes.subList(i+1, numOfVertexes));
+
+            // count L.H.S. of Equation; count R.H.S. of Equation part 1
+            var sumLHS = 0;
+            var sumRHS1 = 0;
+            for(var v : vertexesL){
+                sumLHS += degreesDifference.get(v);
+
+                var neighboursSet = Graphs.neighborSetOf(_originalGraph, swappedCorrespondenceVertexes_AtoK.get(v));
+                var vDegree = 0;
+                for (var V:vertexesL){
+                    if (neighboursSet.contains(swappedCorrespondenceVertexes_AtoK.get(V)))  vDegree++;
+                }
+                sumRHS1 += l - 1 - vDegree;
+            }
+
+            //count R.H.S. of Equation part 2
+            var sumRHS2 = 0;
+            for(var v:vertexesComplement){
+                var neighboursSet = Graphs.neighborSetOf(_originalGraph, swappedCorrespondenceVertexes_AtoK.get(v));
+                var vDegree = 0;
+                for (var V:vertexesL){
+                    if (neighboursSet.contains(swappedCorrespondenceVertexes_AtoK.get(V)))  vDegree++;
+                }
+
+                sumRHS2 += Math.min(l-vDegree, degreesDifference.get(v));
+            }
+
+            if(sumLHS <= sumRHS1+sumRHS2)   return true;
+        }
+        return false;
+    }
+
+    private List<Integer> GetVertexesWithHighestDegree(List<Integer> degrees, List<Integer> anonymizedVertexes, Graph<Integer, DefaultEdge> anonymizedGraph, Integer chosenVertex, int chosenVertexDegree){
         List<Integer> vertexesIndexesWithHighestDegree = new ArrayList<>();
         List<Integer> tempVertDegrees = new ArrayList<>(degrees);
         
@@ -297,8 +402,10 @@ public class Anonymization {
 
         while(vertexesIndexesWithHighestDegree.size() < chosenVertexDegree){
             var maxDegreeIndex = tempVertDegrees.indexOf(Collections.max(tempVertDegrees));
-            vertexesIndexesWithHighestDegree.add(maxDegreeIndex);
-            tempVertDegrees.set(maxDegreeIndex, 0);
+            if(anonymizedVertexes.get(maxDegreeIndex) != chosenVertex && anonymizedGraph.getEdge(chosenVertex, anonymizedVertexes.get(maxDegreeIndex)) == null){
+                vertexesIndexesWithHighestDegree.add(maxDegreeIndex);
+            }
+            tempVertDegrees.set(maxDegreeIndex, -1);
         }
 
         return vertexesIndexesWithHighestDegree;

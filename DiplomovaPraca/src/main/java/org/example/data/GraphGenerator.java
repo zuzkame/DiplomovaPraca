@@ -17,15 +17,19 @@ public class GraphGenerator {
     private static Map<Integer, Integer> VertexMap;
     private final FileReader fr = new FileReader();
 
-    public GraphGenerator(int maxVal){
+    public GraphGenerator(){
+    }
+
+    public static GraphGenerator getInstance(){
+        if(generator == null){
+            generator = new GraphGenerator();
+        }
+        return generator;
     }
 
     public static GraphGenerator getInstance(int maxVal){
         MAX_VERTEXES = maxVal;
-        if(generator == null){
-            generator = new GraphGenerator(maxVal);
-        }
-        return generator;
+        return getInstance();
     }
 
     public FileReader getFr() {
@@ -37,7 +41,7 @@ public class GraphGenerator {
         VertexMap = new HashMap<>();
         List<Integer> vertexes = IntStream.range(firstVertexNumber, lastVertexNumber+1).boxed().collect(Collectors.toList());
 
-        if(vertexes.size() > MAX_VERTEXES){
+        if(MAX_VERTEXES != 0 && vertexes.size() > MAX_VERTEXES){
             Collections.shuffle(vertexes);
             vertexes = vertexes.subList(0, MAX_VERTEXES);
         }
@@ -61,21 +65,27 @@ public class GraphGenerator {
         return graph;
     }
 
-    public SimpleGraph<Integer, DefaultEdge> GenerateRandomSocialGraphWithClusters(int numOfVertexes, int numOfEdges){
+    public SimpleGraph<Integer, DefaultEdge> GenerateRandomSocialGraphWithClusters(int numOfVertexes){
+        int numOfEdges = (int)Math.round(4.27*numOfVertexes);
         var graph = GenerateGraphWithXVertexes(1, numOfVertexes);
 
         double highestDegreeVertexesFraction = 0.05;
-        int highestDegreeRangeStart = (int) Math.round(numOfEdges * 0.10);
-        int highestDegreeRangeEnd = (int) Math.round(numOfEdges * 0.18);
+        int numHighDegreeVertices = (int) Math.round(highestDegreeVertexesFraction * numOfVertexes);
+
+        int highestDegreeRangeEnd = (int) ((numOfEdges / numHighDegreeVertices)*0.9);
+        int highestDegreeRangeStart = highestDegreeRangeEnd/4;
         Random rand = new Random();
 
 
-        // Calculate the number of high-degree vertices
-        int numHighDegreeVertices = (int) Math.round(highestDegreeVertexesFraction * numOfVertexes);
-
         var edgesLeft = numOfEdges;
         for (var i = 1; i <= numHighDegreeVertices; i++){
-            var deg = rand.nextInt(highestDegreeRangeStart, highestDegreeRangeEnd+1);
+            int deg;
+            do{
+                deg = rand.nextInt(highestDegreeRangeStart, highestDegreeRangeEnd+1);
+                if(i == 1){
+                    deg = numOfVertexes/3;
+                }
+            } while(deg>edgesLeft);
             for (int j = 0; j < deg; j++) {
                 int neighbor = rand.nextInt(1, numOfVertexes);
                 if (i != neighbor && graph.getEdge(i, neighbor) == null) {
@@ -86,13 +96,12 @@ public class GraphGenerator {
                 }
             }
         }
-        System.out.println(edgesLeft);
 
         for(var vertex : graph.vertexSet()){
             if(vertex > numHighDegreeVertices && edgesLeft > 0){
                 int deg;
                 do{
-                    deg = rand.nextInt(3);
+                    deg = rand.nextInt(4);
                 } while(deg>edgesLeft);
                 for (int j = 0; j < deg; j++) {
                     int neighbor = rand.nextInt(numHighDegreeVertices+1, numOfVertexes);
@@ -117,6 +126,35 @@ public class GraphGenerator {
 //        var chart = ChartUtil.getInstance();
 //        chart.createChartPocetnostVrcholovSoStupnom(degrees, "Početnosť vrcholov s daným stupňom");
 //        chart.ShowChart("Umely dataset");
+        return graph;
+    }
+
+    public SimpleGraph<Integer, DefaultEdge> GenerateRandomSocialGraph(int numOfVertexes){
+        int numOfEdges = (int)Math.round(4.27*numOfVertexes);
+        var graph = GenerateGraphWithXVertexes(1, numOfVertexes);
+        Random rand = new Random();
+
+        var edgesLeft = numOfEdges;
+
+        while(edgesLeft>0){
+            var v1 = rand.nextInt(1, numOfVertexes+1);
+            var v2 = rand.nextInt(1, numOfVertexes+1);
+            if (v1 != v2 && graph.getEdge(v1, v2) == null) {
+                graph.addEdge(v1, v2);
+                edgesLeft--;
+            }
+        }
+
+        System.out.println(graph);
+        var degrees = new ArrayList<Integer>();
+        for (int vertex : graph.vertexSet()){
+            degrees.add(graph.degreeOf(vertex));
+        }
+        Collections.sort(degrees);
+        Collections.reverse(degrees);
+        System.out.println(degrees);
+        System.out.println("pocet hran: " + degrees.stream().mapToInt(i -> i).sum()/2);
+
         return graph;
     }
 }
