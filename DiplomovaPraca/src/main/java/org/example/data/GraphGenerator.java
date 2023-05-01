@@ -66,7 +66,7 @@ public class GraphGenerator {
     }
 
     public SimpleGraph<Integer, DefaultEdge> GenerateRandomSocialGraphWithClusters(int numOfVertexes){
-        int numOfEdges = (int)Math.round(4.27*numOfVertexes);
+        int numOfEdges = (int)Math.round(2.27*numOfVertexes);
         var graph = GenerateGraphWithXVertexes(1, numOfVertexes);
 
         double highestDegreeVertexesFraction = 0.05;
@@ -97,18 +97,20 @@ public class GraphGenerator {
             }
         }
 
-        for(var vertex : graph.vertexSet()){
-            if(vertex > numHighDegreeVertices && edgesLeft > 0){
-                int deg;
-                do{
-                    deg = rand.nextInt(4);
-                } while(deg>edgesLeft);
-                for (int j = 0; j < deg; j++) {
-                    int neighbor = rand.nextInt(numHighDegreeVertices+1, numOfVertexes);
-                    if (vertex != neighbor && graph.getEdge(vertex, neighbor) == null) {
-                        graph.addEdge(vertex, neighbor);
-                        edgesLeft--;
-                    }
+        while(edgesLeft > 0){
+            var vertex = rand.nextInt(numHighDegreeVertices, numOfVertexes+1);
+            int deg;
+            do{
+                deg = rand.nextInt(4);
+            } while(deg>edgesLeft);
+            for (int j = 0; j < deg; j++) {
+                int neighbor = rand.nextInt(numHighDegreeVertices+1, numOfVertexes);
+                if (vertex != neighbor && graph.getEdge(vertex, neighbor) == null) {
+                    graph.addEdge(vertex, neighbor);
+                    edgesLeft--;
+                }
+                else{
+                    j--;
                 }
             }
         }

@@ -29,20 +29,40 @@ public class DiplomovaPraca {
 //        String v2 = "B";
 //        String v3 = "C";
 //        String v4 = "D";
+//        String v5 = "E";
+//        String v6 = "F";
+//        String v7 = "G";
+//        String v0 = "Z";
 //        graph.addVertex(v1);
 //        graph.addVertex(v2);
 //        graph.addVertex(v3);
 //        graph.addVertex(v4);
-//        graph.setEdgeWeight(graph.addEdge(v1, v3), -1.5651651894); // Negate the edge weights
-//        graph.setEdgeWeight(graph.addEdge(v1, v4), -2.321541);
-//        graph.setEdgeWeight(graph.addEdge(v2, v3), -0.65114);
-//        graph.setEdgeWeight(graph.addEdge(v2, v4), -1.619815);
+//        graph.addVertex(v5);
+//        graph.addVertex(v6);
+//        graph.addVertex(v7);
+//        graph.addVertex(v0);
+//        graph.setEdgeWeight(graph.addEdge(v1, v4), -0.1); // Negate the edge weights
+//        graph.setEdgeWeight(graph.addEdge(v1, v5), -0.9);
+//        graph.setEdgeWeight(graph.addEdge(v1, v6), 0);
+//        graph.setEdgeWeight(graph.addEdge(v1, v7), 0);
+//        graph.setEdgeWeight(graph.addEdge(v2, v4), -0.1);
+//        graph.setEdgeWeight(graph.addEdge(v2, v5), -0.1);
+//        graph.setEdgeWeight(graph.addEdge(v2, v6), -0.4);
+//        graph.setEdgeWeight(graph.addEdge(v2, v7), -0.4);
+//        graph.setEdgeWeight(graph.addEdge(v3, v4), -0.3);
+//        graph.setEdgeWeight(graph.addEdge(v3, v5), -0.5);
+//        graph.setEdgeWeight(graph.addEdge(v3, v6), -0.2);
+//        graph.setEdgeWeight(graph.addEdge(v3, v7), 0);
+//        graph.setEdgeWeight(graph.addEdge(v0, v4), 0);
+//        graph.setEdgeWeight(graph.addEdge(v0, v5), 0);
+//        graph.setEdgeWeight(graph.addEdge(v0, v6), 0);
+//        graph.setEdgeWeight(graph.addEdge(v0, v7), 0);
 
         // Compute the maximum weight bipartite matching
 //        KuhnMunkresMinimalWeightBipartitePerfectMatching<String, DefaultWeightedEdge> matching = new KuhnMunkresMinimalWeightBipartitePerfectMatching<>(
 //                graph,
-//                new HashSet<>(Arrays.asList("A", "B")),
-//                new HashSet<>(Arrays.asList("C", "D")));
+//                new HashSet<>(Arrays.asList("A", "B", "C","Z")),
+//                new HashSet<>(Arrays.asList("D","E","F","G")));
 //        MatchingAlgorithm.Matching<String, DefaultWeightedEdge> bipartiteMatching = matching.getMatching();
 //        System.out.println("KuhnMunkresMinimalWeightBipartitePerfectMatching" + -bipartiteMatching.getWeight());
 //
@@ -59,24 +79,34 @@ public class DiplomovaPraca {
 //        g.addEdge(1, 3);
 //        g.setEdgeWeight(1, 3, 1.5651651894);
 //        g.addEdge(1, 4);
-//        g.setEdgeWeight(1, 4, 2.321541);
+//        g.setEdgeWeight(1, 4, 0.1);
+//        g.addEdge(1, 5);
+//        g.setEdgeWeight(1, 5, 0.9);
+//        g.addEdge(1, 6);
+//        g.setEdgeWeight(1, 6, 0);
 //        g.addEdge(1, 7);
-//        g.setEdgeWeight(1, 7, 1);
+//        g.setEdgeWeight(1, 7, 0);
 
 //        g.addEdge(2, 3);
 //        g.setEdgeWeight(2, 3, 0.65114);
 //        g.addEdge(2, 4);
-//        g.setEdgeWeight(2, 4, 1.619815);
+//        g.setEdgeWeight(2, 4, 0.1);
+//        g.addEdge(2, 5);
+//        g.setEdgeWeight(2, 5, 0.1);
+//        g.addEdge(2, 6);
+//        g.setEdgeWeight(2, 6, 0.4);
 //        g.addEdge(2, 7);
-//        g.setEdgeWeight(2, 7, 1);
-
-//        g.addEdge(3, 5);
-//        g.setEdgeWeight(3, 5, 1);
-//        g.addEdge(3, 6);
-//        g.setEdgeWeight(3, 6, 1);
-//        g.addEdge(3, 7);
-//        g.setEdgeWeight(3, 7, 1);
+//        g.setEdgeWeight(2, 7, 0.4);
 //
+//        g.addEdge(3, 4);
+//        g.setEdgeWeight(3, 4, 0.3);
+//        g.addEdge(3, 5);
+//        g.setEdgeWeight(3, 5, 0.5);
+//        g.addEdge(3, 6);
+//        g.setEdgeWeight(3, 6, 0.2);
+//        g.addEdge(3, 7);
+//        g.setEdgeWeight(3, 7, 0);
+
 //        g.addEdge(4, 5);
 //        g.setEdgeWeight(4, 5, 1);
 //        g.addEdge(4, 6);
@@ -86,23 +116,27 @@ public class DiplomovaPraca {
 
 //        var maxMatching = new MaximumWeightBipartiteMatching<Integer, DefaultWeightedEdge>(
 //                g,
-//                new HashSet<>(Arrays.asList(1, 2)),
-//                new HashSet<>(Arrays.asList(3,4)));
+//                new HashSet<>(Arrays.asList(1, 2,3)),
+//                new HashSet<>(Arrays.asList(4,5,6,7)));
 //        maxMatching.getMatching();
 //        System.out.println("MaximumWeightBipartiteMatching: " + maxMatching.getMatchingWeight().doubleValue());
-        var g =GraphGenerator.getInstance(500).GenerateRandomSocialGraphWithClusters(300, (int)Math.round(2.3*300));
+//        var gg =GraphGenerator.getInstance().GenerateRandomSocialGraph(1000);
 
-        var anonymization = new Anonymization(2, "");
-        anonymization.AnonymizeGreedy(g);
+        var anonymization = new Anonymization("musae_git_edges.csv");
+        anonymization.AnonymizeRandom(null, 0.01);
         Graph<Integer, DefaultEdge> anonymizedGraphResult = anonymization.get_anonymizedGraphResult();
 
         if(anonymizedGraphResult == null) return;
-        System.out.println(anonymizedGraphResult);
+        //  System.out.println(anonymizedGraphResult);
 
         var chart = ChartUtil.getInstance();
-        chart.createChartPocetnostVrcholovSoStupnom(anonymization.get_originaldegrees(), "Početnosť vrcholov s daným stupňom");
-        chart.ShowChart("Twitch dataset");
-        var deanonymization = new Deanonymization(anonymizedGraphResult, anonymization.get_originalGraph(), 0.001);
+        chart.createChartPocetnostVrcholovSoStupnom(anonymization.get_originaldegrees(), "Početnosť vrcholov s daným stupňom vo vstupnom grafe");
+        chart.ShowChart("Random dataset");
+        System.out.println("pocet hran anonymizovanych: " + anonymizedGraphResult.edgeSet().size());
+        System.out.println("pocet hran povodnych: " + anonymization.get_originalGraph().edgeSet().size());
+        System.out.println("pocet vrcholov anonymizovanych: " + anonymizedGraphResult.vertexSet().size());
+        System.out.println("pocet vrcholov povodnych: " + anonymization.get_originalGraph().vertexSet().size());
+        var deanonymization = new Deanonymization(anonymizedGraphResult, anonymization.get_originalGraph(), 0.01);
         deanonymization.Deanonymize();
 //        System.out.println(deanonymization.get_correspondenceMatrix());
         var count = 0.0;

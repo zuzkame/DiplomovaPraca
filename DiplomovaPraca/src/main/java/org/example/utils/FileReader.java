@@ -56,6 +56,7 @@ public class FileReader {
     public List<List<Integer>> getEdgesListFromCsv(){
         var listOfEdges = new ArrayList<List<Integer>>();
         try{
+//            Scanner sc = new Scanner(new File("C:\\Users\\zuzka\\Documents\\SCHOOL\\Ing-SEM4\\DP\\datasets\\musae_git_edges-test.csv"));
             Scanner sc = new Scanner(new File(PathToCsvFile));
             sc.useDelimiter(",");
             int max = 0;

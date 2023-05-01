@@ -8,7 +8,6 @@ import org.jgrapht.graph.SimpleGraph;
 
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -25,11 +24,21 @@ public class Anonymization {
     private Graph<Integer, DefaultEdge> _originalGraph;
 
     private Map<Integer, Integer> correspondenceVertexesKToA;
-    private static GraphGenerator graphGenerator = GraphGenerator.getInstance(500);
+    private static GraphGenerator graphGenerator = GraphGenerator.getInstance(3500);
 
     private String _filename;
 
-    private Anonymization(){}
+    public Anonymization(){
+        this(0, "");
+    }
+
+    public Anonymization(String filename){
+        set_filename(filename);
+    }
+
+    public Anonymization(int k){
+        this(k, "");
+    }
 
     public Anonymization(int k, String filename){
         set_filename(filename);
@@ -78,15 +87,10 @@ public class Anonymization {
                 degreesSortedValues.add(entry.getValue());
                 degreesSortedKeys.add(entry.getKey());
             }
-
-
-
 //            System.out.println("pocetnost stupnov:" + degreesSortedValues.stream().collect(Collectors.groupingBy(e -> e.toString(),Collectors.counting())));
             _degreesResult = GreedyAlgorithm(new ArrayList<>(degreesSortedValues));
 //            System.out.println(_degreesResult.size());
 //            System.out.println(_degrees.stream().mapToInt(i -> i).sum()/2);
-//            System.out.println("pocet hran po anonymizacii: " + _degreesResult.stream().mapToInt(i -> i).sum()/2);
-//            System.out.println("pocetnost stupnov po anonymizacii:" + _degreesResult.stream().collect(Collectors.groupingBy(e -> e.toString(),Collectors.counting())));
 
             _degreesResultMap = new LinkedHashMap<>();
             for(var i = 0; i < _degreesResult.size(); i++){
@@ -98,8 +102,8 @@ public class Anonymization {
             System.out.println("min stupen: " + _degreesResult.get(_degreesResult.size()-1));
             System.out.println("median: " + (_degreesResult.size()%2==0 ? ( _degreesResult.get(_degreesResult.size()/2 -1) + _degreesResult.get(_degreesResult.size()/2)) / 2 : _degreesResult.get((_degreesResult.size()+1) / 2 - 1)));
             System.out.println("priemer: " + _degreesResult.stream().mapToInt(i -> i).sum()/_degreesResult.size());
-//            _anonymizedGraphResult = GraphReconstruction(degreesSortedKeys);
-            _anonymizedGraphResult =CopyPasteGraphReconstruction(degreesSortedKeys);
+            _anonymizedGraphResult = GraphReconstruction(degreesSortedKeys);
+//            _anonymizedGraphResult = CopyPasteGraphReconstruction(degreesSortedKeys);
             if (_anonymizedGraphResult == null) {
                 System.out.println("Graf sa neda zostrojit");
                 return;
@@ -118,20 +122,25 @@ public class Anonymization {
     private void GraphInitialization(SimpleGraph<Integer, DefaultEdge> g) throws URISyntaxException {
         SimpleGraph<Integer, DefaultEdge> graph;
         if(g == null){
-            var fr = graphGenerator.getFr();
-            fr.setPathToCsvFile(ClassLoader.getSystemResource(_filename).toURI());
-            var listOfEdgeTuples = fr.getEdgesListFromCsv();
-
-            graph = graphGenerator.GenerateGraphWithXVertexes(fr.getMinNumber(), fr.getMaxNumber());
-            graph = graphGenerator.AddEdgesFromList(graph, listOfEdgeTuples);
+            graph = GenerateGraphFromFile();
         }
         else{
             graph = g;
         }
-
         _originalGraph = graph;
         setDegreeList(graph);
         setSortedDegreeList();
+    }
+
+    private SimpleGraph<Integer, DefaultEdge> GenerateGraphFromFile() throws URISyntaxException {
+        SimpleGraph<Integer, DefaultEdge> graph;
+        var fr = graphGenerator.getFr();
+        fr.setPathToCsvFile(ClassLoader.getSystemResource(_filename).toURI());
+        var listOfEdgeTuples = fr.getEdgesListFromCsv();
+
+        graph = graphGenerator.GenerateGraphWithXVertexes(fr.getMinNumber(), fr.getMaxNumber());
+        graph = graphGenerator.AddEdgesFromList(graph, listOfEdgeTuples);
+        return graph;
     }
 
     private void setDegreeList(SimpleGraph<Integer, DefaultEdge> graph){
@@ -210,6 +219,88 @@ public class Anonymization {
         return Stream.concat(firstKElements.stream(), GreedyAlgorithm(sortedCopy).stream()).toList();
     }
 
+    public void AnonymizeRandom(SimpleGraph<Integer, DefaultEdge> g, double modificationFraction){
+        try{
+            GraphInitialization(g);
+        }catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
+        Random rand = new Random();
+        int numOfVertexes = _originalGraph.vertexSet().size();
+        List<Integer> anonymizedVertexes = new ArrayList<>(IntStream.range(1, numOfVertexes+1).boxed().toList());
+        Collections.shuffle(anonymizedVertexes);
+        SimpleGraph<Integer, DefaultEdge> anonymizedGraph = graphGenerator.GenerateGraphWithXVertexes(1, numOfVertexes);
+        correspondenceVertexesKToA = new LinkedHashMap<>();
+        for (var i = 1; i <= numOfVertexes; i++){
+            correspondenceVertexesKToA.put(i, anonymizedVertexes.get(i-1));
+        }
+
+        //create copy of original graph with corresponding vertexes
+        for(var entry : _originalGraph.edgeSet()){
+            anonymizedGraph.addEdge(correspondenceVertexesKToA.get(_originalGraph.getEdgeSource(entry)),
+                    correspondenceVertexesKToA.get(_originalGraph.getEdgeTarget(entry)));
+        }
+
+        int edgesModificationNumber = (int)Math.round(_originalGraph.edgeSet().size() * modificationFraction);
+
+        //delete edges
+        Set<Set<Integer>> deletedEdges = new HashSet<>();
+        while (deletedEdges.size()<edgesModificationNumber){
+            int v1 = rand.nextInt(1, numOfVertexes+1);
+            if(anonymizedGraph.degreeOf(v1) == 0){
+                continue;
+            }
+            int v2 = Graphs.neighborListOf(anonymizedGraph, v1).get(rand.nextInt(0, anonymizedGraph.degreeOf(v1)));
+
+            var edge = anonymizedGraph.getEdge(v1,v2);
+            deletedEdges.add(new HashSet<>(Arrays.asList(anonymizedGraph.getEdgeSource(edge), anonymizedGraph.getEdgeTarget(edge))));
+            anonymizedGraph.removeEdge(edge);
+        }
+        System.out.println("deleted edges: " + deletedEdges.size());
+
+        //add edges
+        int countAddedEdges = 0;
+        while (countAddedEdges < edgesModificationNumber){
+            int v1;
+            int v2;
+            do{
+                v1 = rand.nextInt(1, numOfVertexes+1);
+                v2 = rand.nextInt(1, numOfVertexes+1);
+            }while(v1 == v2 || anonymizedGraph.getEdge(v1,v2) != null);
+
+            var hasBeenDeleted = false;
+            for(var s : deletedEdges){
+                //cannot add edge, which has already been deleted
+                if(s.containsAll(Arrays.asList(v1,v2))){
+                    hasBeenDeleted = true;
+                    break;
+                }
+            }
+            if(!hasBeenDeleted){
+                anonymizedGraph.addEdge(v1, v2);
+                countAddedEdges += 1;
+            }
+        }
+        System.out.println("added edges: " + countAddedEdges);
+        _anonymizedGraphResult = anonymizedGraph;
+        if (_anonymizedGraphResult == null) {
+            System.out.println("Graf sa neda zostrojit");
+        }
+
+        List<Integer> degrees = new ArrayList<>();
+        for(var v: anonymizedGraph.vertexSet()){
+            degrees.add(anonymizedGraph.degreeOf(v));
+        }
+        Collections.sort(degrees);
+
+        System.out.println("ANONYMIZOVANY GRAF");
+        System.out.println("max stupen: " + degrees.get(numOfVertexes-1));
+        System.out.println("min stupen: " + degrees.get(0));
+        System.out.println("median: " + (degrees.size()%2==0 ? ( degrees.get(degrees.size()/2 -1) + degrees.get(degrees.size()/2)) / 2 : degrees.get((degrees.size()+1) / 2 - 1)));
+        System.out.println("priemer: " + degrees.stream().mapToInt(i -> i).sum()/degrees.size());
+    }
+
     private int countMerge(List<Integer> list, int mergeElementIndex) throws IndexOutOfBoundsException, IllegalArgumentException{
         return list.get(0) - list.get(mergeElementIndex) + degAnonCostI(list.subList(mergeElementIndex+1, 2*k+1));
     }
@@ -242,6 +333,7 @@ public class Anonymization {
         while(true){
             if(degreesResultCopy.stream().filter(x -> x < 0).toList().size() > 0){
                 System.out.println("nevyslo to");
+                System.out.println("degree result " + _degreesResult);
                 return null;
             }
             if(degreesResultCopy.stream().filter(x -> x == 0).toList().size() == degreesResultCopy.size()){

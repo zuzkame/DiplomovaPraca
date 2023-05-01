@@ -102,6 +102,6 @@ public class ChartUtil extends JFrame {
         pack();
         setTitle(windowTitle);
         setLocationRelativeTo(null);
-//        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 }
