@@ -53,11 +53,11 @@ public class FileReader {
      * Load csv with edges.
      * @return List of integer tuples
      */
-    public List<List<Integer>> getEdgesListFromCsv(){
+    public List<List<Integer>> getEdgesListFromCsv(File edges) throws IllegalArgumentException{
         var listOfEdges = new ArrayList<List<Integer>>();
         try{
-//            Scanner sc = new Scanner(new File("C:\\Users\\zuzka\\Documents\\SCHOOL\\Ing-SEM4\\DP\\datasets\\musae_git_edges-test.csv"));
-            Scanner sc = new Scanner(new File(PathToCsvFile));
+//            Scanner sc = new Scanner(new File(PathToCsvFile));
+            Scanner sc = new Scanner(edges);
             sc.useDelimiter(",");
             int max = 0;
             int min = 1;

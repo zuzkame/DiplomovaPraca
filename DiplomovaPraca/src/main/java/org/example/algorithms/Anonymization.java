@@ -24,24 +24,13 @@ public class Anonymization {
     private Graph<Integer, DefaultEdge> _originalGraph;
 
     private Map<Integer, Integer> correspondenceVertexesKToA;
-    private static GraphGenerator graphGenerator = GraphGenerator.getInstance(3500);
-
-    private String _filename;
+    private static GraphGenerator graphGenerator = GraphGenerator.getInstance();
 
     public Anonymization(){
-        this(0, "");
-    }
-
-    public Anonymization(String filename){
-        set_filename(filename);
+        this(0);
     }
 
     public Anonymization(int k){
-        this(k, "");
-    }
-
-    public Anonymization(int k, String filename){
-        set_filename(filename);
         setK(k);
     }
 
@@ -51,10 +40,6 @@ public class Anonymization {
 
     private void setK(int k) {
         this.k = k;
-    }
-
-    private void set_filename(String _filename) {
-        this._filename = _filename;
     }
 
     public Graph<Integer, DefaultEdge> get_anonymizedGraphResult() {
@@ -74,10 +59,10 @@ public class Anonymization {
     }
 
     public void AnonymizeGreedy(){
-        AnonymizeGreedy(null);
+        AnonymizeGreedy(null, false);
     }
 
-    public void AnonymizeGreedy(SimpleGraph<Integer, DefaultEdge> g){
+    public void AnonymizeGreedy(SimpleGraph<Integer, DefaultEdge> g, boolean copyPasteReconstruct){
         if(k <= 1) return;
         try{
             GraphInitialization(g);
@@ -102,14 +87,13 @@ public class Anonymization {
             System.out.println("min stupen: " + _degreesResult.get(_degreesResult.size()-1));
             System.out.println("median: " + (_degreesResult.size()%2==0 ? ( _degreesResult.get(_degreesResult.size()/2 -1) + _degreesResult.get(_degreesResult.size()/2)) / 2 : _degreesResult.get((_degreesResult.size()+1) / 2 - 1)));
             System.out.println("priemer: " + _degreesResult.stream().mapToInt(i -> i).sum()/_degreesResult.size());
-            _anonymizedGraphResult = GraphReconstruction(degreesSortedKeys);
-//            _anonymizedGraphResult = CopyPasteGraphReconstruction(degreesSortedKeys);
+
+            _anonymizedGraphResult = copyPasteReconstruct ?
+                    CopyPasteGraphReconstruction(degreesSortedKeys) : GraphReconstruction(degreesSortedKeys);
             if (_anonymizedGraphResult == null) {
                 System.out.println("Graf sa neda zostrojit");
                 return;
             }
-//            System.out.println(_anonymizedGraphResult.edgeSet());
-
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -120,26 +104,26 @@ public class Anonymization {
     }
 
     private void GraphInitialization(SimpleGraph<Integer, DefaultEdge> g) throws URISyntaxException {
-        SimpleGraph<Integer, DefaultEdge> graph;
+//        SimpleGraph<Integer, DefaultEdge> graph;
         if(g == null){
-            graph = GenerateGraphFromFile();
+//            graph = GenerateGraphFromFile();
         }
         else{
-            graph = g;
+//            graph = g;
         }
-        _originalGraph = graph;
-        setDegreeList(graph);
+        _originalGraph = g;
+        setDegreeList(g);
         setSortedDegreeList();
     }
 
     private SimpleGraph<Integer, DefaultEdge> GenerateGraphFromFile() throws URISyntaxException {
         SimpleGraph<Integer, DefaultEdge> graph;
         var fr = graphGenerator.getFr();
-        fr.setPathToCsvFile(ClassLoader.getSystemResource(_filename).toURI());
-        var listOfEdgeTuples = fr.getEdgesListFromCsv();
-
+//        fr.setPathToCsvFile(ClassLoader.getSystemResource(_filename).toURI());
+//        var listOfEdgeTuples = fr.getEdgesListFromCsv();
+//
         graph = graphGenerator.GenerateGraphWithXVertexes(fr.getMinNumber(), fr.getMaxNumber());
-        graph = graphGenerator.AddEdgesFromList(graph, listOfEdgeTuples);
+//        graph = graphGenerator.AddEdgesFromList(graph, listOfEdgeTuples);
         return graph;
     }
 
@@ -182,7 +166,7 @@ public class Anonymization {
             }
         }
 //        System.out.println("povodne d (vrchol=degree): " + _degreesMap);
-//        System.out.println("povodne d ZORADENE (vrchol=degree): " + _degreesSorted);
+//        System .out.println("povodne d ZORADENE (vrchol=degree): " + _degreesSorted);
     }
 
     private int degAnonCostI(List<Integer> sublist){
@@ -212,7 +196,6 @@ public class Anonymization {
         } catch(IllegalArgumentException ex){ //uz nevieme overovat merge/new
             sortedCopy = sortedCopy.subList(mergeElementIndex, sortedCopy.size());
         } catch(IndexOutOfBoundsException ex){ //sme na konci rekurzie
-//            System.out.println("kedy to skoncilo: " + sortedCopy.size());
             return Collections.nCopies(sortedCopy.size(), sortedCopy.get(0));
         }
 

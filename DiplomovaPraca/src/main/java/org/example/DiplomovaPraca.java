@@ -122,16 +122,16 @@ public class DiplomovaPraca {
 //        System.out.println("MaximumWeightBipartiteMatching: " + maxMatching.getMatchingWeight().doubleValue());
 //        var gg =GraphGenerator.getInstance().GenerateRandomSocialGraph(1000);
 
-        var anonymization = new Anonymization("musae_git_edges.csv");
+        var anonymization = new Anonymization(40);
         anonymization.AnonymizeRandom(null, 0.01);
         Graph<Integer, DefaultEdge> anonymizedGraphResult = anonymization.get_anonymizedGraphResult();
 
         if(anonymizedGraphResult == null) return;
         //  System.out.println(anonymizedGraphResult);
 
-        var chart = ChartUtil.getInstance();
-        chart.createChartPocetnostVrcholovSoStupnom(anonymization.get_originaldegrees(), "Početnosť vrcholov s daným stupňom vo vstupnom grafe");
-        chart.ShowChart("Random dataset");
+//        var chart = ChartUtil.getInstance();
+//        chart.createChartPocetnostVrcholovSoStupnom(anonymization.get_originaldegrees(), "Početnosť vrcholov s daným stupňom vo vstupnom grafe");
+//        chart.ShowChart("Random dataset");
         System.out.println("pocet hran anonymizovanych: " + anonymizedGraphResult.edgeSet().size());
         System.out.println("pocet hran povodnych: " + anonymization.get_originalGraph().edgeSet().size());
         System.out.println("pocet vrcholov anonymizovanych: " + anonymizedGraphResult.vertexSet().size());
@@ -164,8 +164,8 @@ public class DiplomovaPraca {
         System.out.println("pocet iteracii: " + deanonymization.getNumOfIterations());
     }
     public static void main(String[] args){
-        var dp = new DiplomovaPraca();
-//        UIFrame frame = new UIFrame();
-//        frame.setVisible(true);
+//        var dp = new DiplomovaPraca();
+        UIFrame frame = new UIFrame();
+        frame.setVisible(true);
     }
 }

@@ -1,11 +1,10 @@
 package org.example.data;
 
-import org.example.utils.ChartUtil;
 import org.example.utils.FileReader;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
 
-import java.text.CollationElementIterator;
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -65,34 +64,36 @@ public class GraphGenerator {
         return graph;
     }
 
-    public SimpleGraph<Integer, DefaultEdge> GenerateRandomSocialGraphWithClusters(int numOfVertexes){
-        int numOfEdges = (int)Math.round(2.27*numOfVertexes);
+    public SimpleGraph<Integer, DefaultEdge> GenerateRandomSocialGraphWithClusters(int numOfVertexes, int numOfEdges){
+//        int numOfEdges = (int)Math.round(2.27*numOfVertexes);
         var graph = GenerateGraphWithXVertexes(1, numOfVertexes);
 
         double highestDegreeVertexesFraction = 0.05;
         int numHighDegreeVertices = (int) Math.round(highestDegreeVertexesFraction * numOfVertexes);
 
-        int highestDegreeRangeEnd = (int) ((numOfEdges / numHighDegreeVertices)*0.9);
-        int highestDegreeRangeStart = highestDegreeRangeEnd/4;
+        int highestDegreeRangeEnd = numHighDegreeVertices==0 ? 0 : (int) ((numOfEdges / numHighDegreeVertices)*0.9);
+        int highestDegreeRangeStart = highestDegreeRangeEnd==0 ? 0 : highestDegreeRangeEnd/4;
         Random rand = new Random();
 
 
         var edgesLeft = numOfEdges;
-        for (var i = 1; i <= numHighDegreeVertices; i++){
-            int deg;
-            do{
-                deg = rand.nextInt(highestDegreeRangeStart, highestDegreeRangeEnd+1);
-                if(i == 1){
-                    deg = numOfVertexes/3;
-                }
-            } while(deg>edgesLeft);
-            for (int j = 0; j < deg; j++) {
-                int neighbor = rand.nextInt(1, numOfVertexes);
-                if (i != neighbor && graph.getEdge(i, neighbor) == null) {
-                    graph.addEdge(i, neighbor);
-                    edgesLeft--;
-                } else{
-                    j--;
+        if(numHighDegreeVertices > 0){
+            for (var i = 1; i <= numHighDegreeVertices; i++){
+                int deg;
+                do{
+                    deg = rand.nextInt(highestDegreeRangeStart, highestDegreeRangeEnd+1);
+                    if(i == 1){
+                        deg = numOfVertexes/3;
+                    }
+                } while(deg>edgesLeft);
+                for (int j = 0; j < deg; j++) {
+                    int neighbor = rand.nextInt(1, numOfVertexes);
+                    if (i != neighbor && graph.getEdge(i, neighbor) == null) {
+                        graph.addEdge(i, neighbor);
+                        edgesLeft--;
+                    } else{
+                        j--;
+                    }
                 }
             }
         }
@@ -115,6 +116,8 @@ public class GraphGenerator {
             }
         }
 
+        if(edgesLeft < 0) return null;
+
         System.out.println(graph);
         var degrees = new ArrayList<Integer>();
         for (int vertex : graph.vertexSet()){
@@ -131,8 +134,8 @@ public class GraphGenerator {
         return graph;
     }
 
-    public SimpleGraph<Integer, DefaultEdge> GenerateRandomSocialGraph(int numOfVertexes){
-        int numOfEdges = (int)Math.round(4.27*numOfVertexes);
+    public SimpleGraph<Integer, DefaultEdge> GenerateRandomSocialGraph(int numOfVertexes, int numOfEdges){
+//        int numOfEdges = (int)Math.round(4.27*numOfVertexes);
         var graph = GenerateGraphWithXVertexes(1, numOfVertexes);
         Random rand = new Random();
 
@@ -158,5 +161,22 @@ public class GraphGenerator {
         System.out.println("pocet hran: " + degrees.stream().mapToInt(i -> i).sum()/2);
 
         return graph;
+    }
+
+    public SimpleGraph<Integer, DefaultEdge> LoadGraphFromFile(File edges){
+        SimpleGraph<Integer, DefaultEdge> graph;
+
+        try{
+            var listOfEdgeTuples = fr.getEdgesListFromCsv(edges);
+            graph = GenerateGraphWithXVertexes(fr.getMinNumber(), fr.getMaxNumber());
+            graph = AddEdgesFromList(graph, listOfEdgeTuples);
+            return graph;
+        }catch (IllegalArgumentException e){
+            return null;
+        }
+    }
+
+    public boolean isGraphComplete(){
+        return false;
     }
 }
