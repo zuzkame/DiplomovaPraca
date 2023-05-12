@@ -65,7 +65,6 @@ public class GraphGenerator {
     }
 
     public SimpleGraph<Integer, DefaultEdge> GenerateRandomSocialGraphWithClusters(int numOfVertexes, int numOfEdges){
-//        int numOfEdges = (int)Math.round(2.27*numOfVertexes);
         var graph = GenerateGraphWithXVertexes(1, numOfVertexes);
 
         double highestDegreeVertexesFraction = 0.05;
@@ -135,7 +134,6 @@ public class GraphGenerator {
     }
 
     public SimpleGraph<Integer, DefaultEdge> GenerateRandomSocialGraph(int numOfVertexes, int numOfEdges){
-//        int numOfEdges = (int)Math.round(4.27*numOfVertexes);
         var graph = GenerateGraphWithXVertexes(1, numOfVertexes);
         Random rand = new Random();
 
@@ -174,9 +172,5 @@ public class GraphGenerator {
         }catch (IllegalArgumentException e){
             return null;
         }
-    }
-
-    public boolean isGraphComplete(){
-        return false;
     }
 }

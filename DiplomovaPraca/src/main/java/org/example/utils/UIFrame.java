@@ -278,6 +278,8 @@ public class UIFrame extends JFrame {
                             anonymizationMessage.setForeground(Color.RED);
                         }
                         else{
+                            System.out.println("pocet hran anonymizovanych: " + anonymization.get_anonymizedGraphResult().edgeSet().size());
+                            System.out.println("pocet hran povodnych: " + anonymization.get_originalGraph().edgeSet().size());
                             anonymizationMessage.setText("Anonymizácia prebehla úspešne.");
                             anonymizationMessage.setForeground(successMessageColor);
                             submitAnonymization.setEnabled(false);
@@ -325,7 +327,7 @@ public class UIFrame extends JFrame {
         submitDeanonymization.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                deanonymization = new Deanonymization(anonymization.get_anonymizedGraphResult(), anonymization.get_originalGraph(), 0.03);
+                deanonymization = new Deanonymization(anonymization.get_anonymizedGraphResult(), anonymization.get_originalGraph(), 0.01 );
                 deanonymization.Deanonymize();
                 var count = 0.0;
                 var countWithPocetnost = 0.0;
@@ -340,11 +342,12 @@ public class UIFrame extends JFrame {
                         }
                         countWithPocetnost += 1.0/freq;
                     }
-                    System.out.println("maxValue: " + Arrays.stream(deanonymization.get_correspondenceMatrix()[r]).max());
-                    System.out.println("\n");
                 }
                 var relativeSuccess = count/deanonymization.get_numberOfVertexes()*100.0;
                 var absoluteSuccess = countWithPocetnost/deanonymization.get_numberOfVertexes()*100.0;
+
+                System.out.println("Relatívna úspešnosť deanonymizácie: " + count/deanonymization.get_numberOfVertexes());
+                System.out.println("Absolútna úspešnosť deanonymizácie: " + countWithPocetnost/deanonymization.get_numberOfVertexes());
 
                 deanonymizationRelativeSuccessLabel.setVisible(true);
                 deanonymizationRelativeSuccess.setText(relativeSuccess + "%");
@@ -354,7 +357,7 @@ public class UIFrame extends JFrame {
                 deanonymizationAbsoluteSuccess.setVisible(true);
                 panelDeanon.revalidate();
                 pack();
-                System.out.println("pocet iteracii: " + deanonymization.getNumOfIterations());
+                System.out.println("Pocet iteracii: " + deanonymization.getNumOfIterations());
             }
         });
         gbc.gridx = 0;

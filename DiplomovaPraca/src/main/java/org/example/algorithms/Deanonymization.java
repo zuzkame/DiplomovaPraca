@@ -2,10 +2,7 @@ package org.example.algorithms;
 
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
-import org.jgrapht.alg.interfaces.MatchingAlgorithm;
 import org.jgrapht.alg.matching.MaximumWeightBipartiteMatching;
-import org.jgrapht.alg.matching.blossom.v5.KolmogorovWeightedMatching;
-import org.jgrapht.alg.matching.blossom.v5.ObjectiveSense;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleWeightedGraph;
@@ -58,8 +55,6 @@ public class Deanonymization {
                 _correspondenceMatrix[i][j] = (1.0/_numberOfVertexes);
             }
         }
-
-//        System.out.println(_correspondenceMatrix);
     }
 
     private void MapVertexes(){
